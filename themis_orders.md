@@ -1,28 +1,38 @@
-Phase 0 — Foundation. ASGARD (identity and auth), BIFROST (API gateway), MOIRAI (provenance chain), Session Service (SAGA lifecycle and memory core).
+# Phase 0 — Foundation. ASGARD (identity and auth), BIFROST (API gateway), MOIRAI (provenance chain), Session Service (SAGA lifecycle and memory core).
 Nothing runs without these four. A session needs an authenticated identity, an entry point, a session object to operate on, and a place to write provenance. MOIRAI is the non-negotiable first build for the reason above. The Session Service shell goes in here; its cost-ledger and snapshot modules (PLUTUS, ROLLBACK) can be thin at first and thicken in Phase 5.
 Milestone: an authenticated, recorded but ungoverned session.
-Phase 1 — The governed request path. PGS/NOMOS (policy), PCES/AEGIS (prompt evaluation), SCBS/SENTINEL-CAP (capability bounding), MGS/TERMINUS (tool gateway), CBS/BROKER (credentials).
+
+# Phase 1 — The governed request path. PGS/NOMOS (policy), PCES/AEGIS (prompt evaluation), SCBS/SENTINEL-CAP (capability bounding), MGS/TERMINUS (tool gateway), CBS/BROKER (credentials).
 Now a request flows through fail-closed gates, gets capability-bounded, and calls tools with scoped credentials. This is the minimum viable governed session. Worth noting: SENTINEL-CAP and BROKER are also the two structural defenses against agentic misalignment, so this phase is doubly load-bearing. NOMOS before AEGIS before SENTINEL-CAP, since each depends on the policy definitions the prior one establishes.
 Milestone: first end-to-end governed session. This is the first thing worth demoing to leadership.
-Phase 2 — Knowledge and retrieval. RQS/HERMES (retrieval quality), PRS/PROMETHEUS (prompt repository), SKS/DAEDALUS (skill registry).
+
+# Phase 2 — Knowledge and retrieval. RQS/HERMES (retrieval quality), PRS/PROMETHEUS (prompt repository), SKS/DAEDALUS (skill registry).
 Grounded RAG, versioned prompts, invocable skills. The AI can now do real analytical work. ATHENA becomes demonstrable in basic form at the end of this phase.
 Milestone: ATHENA v1, a governed session doing grounded analytical work.
-Phase 3 — The calibration core. Calibration Service (MIMIR, ALETHEIA, NEMESIS).
+
+# Phase 3 — The calibration core. Calibration Service (MIMIR, ALETHEIA, NEMESIS).
 The differentiator and the riskiest novel capability, built as early as its dependencies allow so the science gets validated and the data starts accumulating. It needs running sessions (Phase 0), grounded retrieval to score (Phase 2), and MOIRAI history to read. Putting it at Phase 3 rather than later is a deliberate risk-retirement choice: if the calibration methodology does not hold up, you want to know in month 6, not month 14.
 Milestone: first calibration data flowing. This is the moment THEMIS becomes itself rather than a governed chat tool.
-Phase 4 — Analytical intelligence. CVS/VERITAS (claim verification), UCS/TYCHE (uncertainty decomposition), ERAS/LOGOS (reasoning audit).
+
+# Phase 4 — Analytical intelligence. CVS/VERITAS (claim verification), UCS/TYCHE (uncertainty decomposition), ERAS/LOGOS (reasoning audit).
 Claim-level provenance, uncertainty typing, reasoning audit. This is what makes ATHENA's claim badges, source-type badges, and counter-positions real rather than mocked. LOGOS also lays the groundwork for the alignment monitor in Phase 6.
 Milestone: ATHENA at full analyst fidelity. The Oversight portal can now show real audit certificates.
-Phase 5 — Detection and currency. Currency Service (KAIROS, ARGUS, KRONOS), Adversarial Service (SCUDO, HADES, EIDOLON), CPS/APORIA (capability zones).
+
+# Phase 5 — Detection and currency. Currency Service (KAIROS, ARGUS, KRONOS), Adversarial Service (SCUDO, HADES, EIDOLON), CPS/APORIA (capability zones).
 Staleness, drift, adversarial screening and the event repository, capability-zone scoring. These are monitors that need a running platform to monitor, which is why they come after the core is live. APORIA depends on both Currency (drift signal) and Calibration (performance data) to compute zones. The IoPC and MITRE ATLAS feed integration lands inside the Adversarial Service here.
 Milestone: the Trust Cell view of Command becomes real (HADES browser, drift, zones).
-Phase 6 — Warning, gaps, and alignment. SWS/SENTINEL (warning), CGS/ARGUS-LACUNA (collection gaps), AMS/JANUS (agentic alignment monitor).
+
+# Phase 6 — Warning, gaps, and alignment. SWS/SENTINEL (warning), CGS/ARGUS-LACUNA (collection gaps), AMS/JANUS (agentic alignment monitor).
 Warning analysis and gap characterization depend on the analytical and detection layers being live. JANUS comes last in the H1 set because it depends on LOGOS (to read structured reasoning traces) and SENTINEL-CAP (to fail closed on a flagged action). It cannot do its job until both exist.
 Milestone: full analytical and safety surface. This completes the H1 27-service commitment.
-Phase 7 — Presentation and consumer (H2, post Gate-5). PCS/IRIS (presentation service) and the IRIS consumer card.
+
+# Phase 7 — Presentation and consumer (H2, post Gate-5). PCS/IRIS (presentation service) and the IRIS consumer card.
 The provenance card to the policymaker is the last link in the chain and needs everything upstream to populate it. This sits in H2 behind the Gate-5 IOB approval, consistent with the roadmap.
 
 The critical path runs MOIRAI to Session Service to the gates to HERMES to the Calibration Service. That is the spine. Everything else hangs off it and can parallelize against it. If you have multiple teams, the analytical intelligence services (Phase 4) and the detection services (Phase 5) are the most parallelizable, since they are independent consumers of the core rather than dependencies of each other.
+
 The interface build weaves through rather than waiting until the end: ATHENA grows from Phase 2 (v1) through Phase 4 (full fidelity); the Oversight portal becomes meaningful once MOIRAI and the gates exist (after Phase 1, real after Phase 4); Command's supervisor view needs the Calibration Service (Phase 3) and its Trust Cell view needs the detection services (Phase 5).
+
 One sequencing judgment worth flagging for debate: I put the Adversarial Service in Phase 5, after calibration. The argument for moving it earlier is that adversarial screening (SCUDO) is a synchronous gate and arguably belongs with the Phase 1 gates. The argument for leaving it in Phase 5 is that SCUDO's value depends on HADES and the pattern catalog, which need a running platform to populate, and that in early phases the threat surface is small. If your deployment environment is adversarial from day one, pull SCUDO forward into Phase 1 and leave HADES and EIDOLON in Phase 5. That is the one place the order should flex to the deployment context.
+
 Want me to fold this into the Implementation Roadmap as a formal phased build plan with the gate mapping, or produce it as a dependency diagram so the critical path and parallelization are visible at a glance?
