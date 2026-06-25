@@ -1,0 +1,10 @@
+What mission engineering is
+Mission engineering is systems engineering with the mission itself treated as the system of interest. Instead of asking, “Does this system meet its technical requirements?” it asks, “Do the people, systems, data, workflows, policies, and technologies combine to produce the intended mission effect?”
+DoD defines it as the deliberate planning, analysis, organization, and integration of current and emerging operational and system capabilities to achieve desired warfighting mission effects. It is explicitly data-driven: decompose the mission, model the mission threads, identify trade-offs, and inform decisions about requirements, acquisition, R&D, experimentation, and portfolio investment.
+The key distinction is:
+Traditional systems engineering	Mission engineering
+System is the unit of analysis	Mission is the unit of analysis
+Optimizes technical performance	Optimizes mission outcome
+Focuses on requirements compliance	Focuses on operational effect
+Often program-centric	Cross-program / system-of-systems / human-organization-technology centric
+SEBoK summarizes the difference well: systems engineering focuses on designing systems to meet technical performance metrics, while mission engineering evaluates whether the system-of-systems achieves the expected mission effects in realistic scenarios.
