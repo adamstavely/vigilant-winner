@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THEMIS: Mission Engineering Traceability</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0C1424;--panel:#0E1929;--surface:#111D30;--raised:#16233A;
+  --bd:rgba(255,255,255,0.08);--bd-mid:rgba(255,255,255,0.14);
+  --text:#E6EAF2;--text-2:#9AA6BE;--text-3:#5E6B85;
+  --op:#5DA9E0;--op-bg:rgba(93,169,224,0.12);--op-bd:rgba(93,169,224,0.30);
+  --fn:#6FCF97;--fn-bg:rgba(111,207,151,0.12);--fn-bd:rgba(111,207,151,0.30);
+  --cap:#C8A24A;--cap-bg:rgba(200,162,74,0.13);--cap-bd:rgba(200,162,74,0.32);
+  --sys:#B98BD4;--sys-bg:rgba(185,139,212,0.13);--sys-bd:rgba(185,139,212,0.30);
+  --teal:#2EC8B0;--teal-bd:rgba(46,200,176,0.3);
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);
+  padding:28px 32px 60px;line-height:1.5;
+  background-image:radial-gradient(circle at 18% 8%,rgba(46,200,176,0.05),transparent 42%),
+    radial-gradient(circle at 82% 4%,rgba(185,139,212,0.05),transparent 40%)}
+
+.masthead{display:flex;align-items:flex-end;justify-content:space-between;
+  border-bottom:1px solid var(--bd-mid);padding-bottom:14px;margin-bottom:6px}
+.mh-left{display:flex;align-items:baseline;gap:14px}
+.brand{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:.24em;color:var(--teal)}
+.mh-title{font-family:var(--mono);font-size:12px;color:var(--text-2);letter-spacing:.06em}
+.mh-right{font-family:var(--mono);font-size:9px;color:var(--text-3);text-align:right;letter-spacing:.08em;line-height:1.7}
+.eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.28em;color:var(--text-3);
+  text-transform:uppercase;margin:26px 0 4px}
+.section-title{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.04em;color:var(--text);margin-bottom:3px}
+.section-sub{font-size:11px;color:var(--text-2);max-width:880px;margin-bottom:16px;line-height:1.65}
+.section-sub b{color:var(--text);font-weight:600}
+
+.flow{display:grid;grid-template-columns:1fr 26px 1fr 26px 1fr 26px 1fr;
+  align-items:stretch;gap:0;margin-top:6px}
+.domain{border:1px solid var(--bd);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;background:var(--panel)}
+.domain.op{border-color:var(--op-bd)}
+.domain.fn{border-color:var(--fn-bd)}
+.domain.cap{border-color:var(--cap-bd)}
+.domain.sys{border-color:var(--sys-bd)}
+.dom-hd{padding:9px 12px 8px;display:flex;flex-direction:column;gap:2px}
+.domain.op .dom-hd{background:var(--op-bg)}
+.domain.fn .dom-hd{background:var(--fn-bg)}
+.domain.cap .dom-hd{background:var(--cap-bg)}
+.domain.sys .dom-hd{background:var(--sys-bg)}
+.dom-kicker{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase}
+.domain.op .dom-kicker{color:var(--op)}
+.domain.fn .dom-kicker{color:var(--fn)}
+.domain.cap .dom-kicker{color:var(--cap)}
+.domain.sys .dom-kicker{color:var(--sys)}
+.dom-name{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--text);letter-spacing:.02em}
+.dom-vec{font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:1px}
+.dom-body{padding:9px 12px 4px;flex:1;display:flex;flex-direction:column;gap:5px}
+.item{display:flex;gap:7px;align-items:flex-start;font-size:10.5px;line-height:1.4}
+.item-id{font-family:var(--mono);font-size:9px;font-weight:600;flex-shrink:0;margin-top:1px}
+.domain.op .item-id{color:var(--op)}
+.domain.fn .item-id{color:var(--fn)}
+.domain.cap .item-id{color:var(--cap)}
+.domain.sys .item-id{color:var(--sys)}
+.item-txt{color:var(--text-2)}
+.item-txt b{color:var(--text);font-weight:600}
+.dom-measure{margin:6px 10px 10px;border-top:1px dashed var(--bd-mid);padding-top:7px;
+  font-family:var(--mono);font-size:9px;line-height:1.5}
+.measure-tag{font-weight:600;letter-spacing:.04em}
+.domain.op .measure-tag{color:var(--op)}
+.domain.fn .measure-tag{color:var(--fn)}
+.domain.cap .measure-tag{color:var(--cap)}
+.domain.sys .measure-tag{color:var(--sys)}
+.measure-desc{color:var(--text-3);margin-top:1px}
+
+.thread{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.thread-line{width:100%;height:2px;background:linear-gradient(90deg,var(--bd-mid),var(--teal-bd))}
+.thread-arrow{position:absolute;font-size:13px;color:var(--teal);top:50%;transform:translateY(-50%)}
+.thread-label{position:absolute;top:calc(50% - 30px);font-family:var(--mono);font-size:8px;
+  font-weight:700;letter-spacing:.1em;color:var(--teal);white-space:nowrap;background:var(--bg);padding:1px 3px}
+.thread-sub{position:absolute;top:calc(50% + 16px);font-family:var(--mono);font-size:7px;
+  color:var(--text-3);white-space:nowrap;background:var(--bg);padding:0 2px;text-align:center;line-height:1.3}
+
+.rollup{margin-top:16px;border:1px solid var(--bd);border-radius:8px;background:var(--panel);
+  padding:13px 16px;display:flex;flex-direction:column;gap:11px}
+.rollup-head{display:flex;align-items:center;gap:10px}
+.rollup-icon{font-family:var(--mono);color:var(--teal);font-size:13px}
+.rollup-head b{color:var(--text);font-weight:600;font-size:12.5px;letter-spacing:.02em}
+.rollup-chain{font-family:var(--mono);font-size:10px;color:var(--teal);white-space:nowrap;margin-left:auto}
+.rollup-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.rj{border:1px solid var(--bd);border-radius:6px;padding:9px 11px;background:var(--bg)}
+.rj-tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:5px}
+.rj-gov{color:var(--teal)}.rj-sub{color:var(--text-3)}.rj-intel{color:var(--sys)}
+.rj-txt{font-size:10px;color:var(--text-2);line-height:1.6}
+.rj-txt b{color:var(--text);font-weight:600}
+.rollup-note{font-size:10px;color:var(--text-3);line-height:1.6;border-top:1px dashed var(--bd-mid);padding-top:8px}
+.rollup-note b{color:var(--text-2);font-weight:600}
+@media(max-width:1080px){.rollup-grid{grid-template-columns:1fr}}
+
+.matrix-wrap{margin-top:8px;border:1px solid var(--bd);border-radius:10px;overflow:hidden;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:10.5px}
+th,td{padding:7px 9px;text-align:center;border:1px solid var(--bd)}
+thead th{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.04em;
+  background:var(--surface);color:var(--text);vertical-align:bottom;line-height:1.3}
+.col-cap{min-width:78px}
+.rowhead{text-align:left;font-size:10px;background:var(--surface);position:relative}
+.rh-id{font-family:var(--mono);font-size:9px;font-weight:600;margin-right:6px}
+.rowhead .rh-id.fn{color:var(--fn)}
+.rowhead .rh-id.cap{color:var(--cap)}
+.rh-txt{color:var(--text-2)}
+.rh-txt b{color:var(--text);font-weight:600}
+.cell{font-family:var(--mono);font-weight:600;font-size:10px;position:relative}
+.lvl-p{background:rgba(46,200,176,0.20);color:#7CEAD8}
+.lvl-s{background:rgba(46,200,176,0.08);color:#3FB6A4}
+.lvl-n{color:var(--text-3)}
+.cap-hd-op{color:var(--op)}.cap-hd-cal{color:var(--teal)}.cap-hd-cur{color:var(--fn)}
+.cap-hd-com{color:var(--cap)}.cap-hd-plat{color:var(--text-3)}
+/* flipped MET */
+.grp td{background:var(--raised);font-family:var(--mono);font-size:8px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--text-3);text-align:left;padding:5px 9px}
+.grp-count{color:var(--text-2);font-weight:600}
+.svc{text-align:left;font-size:10px;background:var(--panel)}
+.svc-code{font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--text)}
+.rms{font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--text-3);border:1px solid var(--bd);border-radius:3px;padding:0 4px;margin-left:6px;text-transform:uppercase}
+.svc-desc{color:var(--text-3);font-size:9px;margin-left:6px}
+.col-plat{background:rgba(255,255,255,0.02)}
+td.col-plat{font-family:var(--mono);font-weight:600;font-size:10px}
+.plat-y{background:rgba(255,255,255,0.05);color:var(--text-2)}
+.met-flip td,.met-flip th{padding:5px 9px}
+.met-flip thead th{position:sticky;top:0}
+.legend{display:flex;gap:18px;align-items:center;padding:9px 14px;border-top:1px solid var(--bd);
+  font-family:var(--mono);font-size:9px;color:var(--text-3);flex-wrap:wrap}
+.lg{display:flex;align-items:center;gap:6px}
+.sw{width:13px;height:13px;border-radius:3px;border:1px solid var(--bd-mid)}
+.sw.p{background:rgba(46,200,176,0.20)}
+.sw.s{background:rgba(46,200,176,0.08)}
+.sw.n{background:transparent}
+
+.foot{margin-top:26px;border-top:1px solid var(--bd);padding-top:12px;
+  font-family:var(--mono);font-size:9px;color:var(--text-3);line-height:1.7}
+.foot b{color:var(--text-2)}
+
+@media(max-width:1080px){
+  .flow{grid-template-columns:1fr;gap:8px}
+  .thread{height:30px;flex-direction:row}
+  .thread-line{width:2px;height:100%}
+  .thread-label,.thread-sub{position:static;background:none}
+}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="mh-left">
+    <div class="brand">THEMIS</div>
+    <div class="mh-title">Mission Engineering Traceability</div>
+  </div>
+  <div class="mh-right">
+    APPLIED ME PROCESS · MORELAND ET AL. 2026<br>
+    OPERATIONAL → FUNCTIONAL → CAPABILITY → PHYSICAL
+  </div>
+</div>
+
+<div class="eyebrow">Axiomatic domain mapping</div>
+<div class="section-title">From mission intent to governed service, with a measure at every seam</div>
+<div class="section-sub">
+  THEMIS expressed in the Department of War applied Mission Engineering process. The mission decomposes into tasks, tasks map to the <b>four accountability axes</b> as capabilities, and capabilities map to the consolidated service set as systems. Provenance is realized under Origin; adversarial and alignment defense are realized under Competence. A bounded adequacy measure is defined at each domain, so any service traces upward to a mission objective and no service exists without a capability measure it satisfies.
+</div>
+
+<!-- DOMAIN FLOW -->
+<div class="flow">
+
+  <!-- Operational -->
+  <div class="domain op">
+    <div class="dom-hd">
+      <div class="dom-kicker">Operational Domain</div>
+      <div class="dom-name">Frame the Mission</div>
+      <div class="dom-vec">v = [o&#8321; … o&#8324;]&#7488;</div>
+    </div>
+    <div class="dom-body">
+      <div class="item"><span class="item-id">o&#8321;</span><span class="item-txt"><b>Origin.</b> Every claim traces to a verifiable source on a tamper-evident record</span></div>
+      <div class="item"><span class="item-id">o&#8322;</span><span class="item-txt"><b>Calibration.</b> Analyst reliance matches AI accuracy</span></div>
+      <div class="item"><span class="item-id">o&#8323;</span><span class="item-txt"><b>Currency.</b> Knowledge is valid at time of use</span></div>
+      <div class="item"><span class="item-id">o&#8324;</span><span class="item-txt"><b>Competence.</b> AI stays within demonstrated bounds and resists adversarial and misaligned behavior</span></div>
+    </div>
+    <div class="dom-measure">
+      <span class="measure-tag">MOS</span> Measure of Success
+      <div class="measure-desc">&Sigma; &gamma;&#7523; (OA&#7523; / OE&#7523;) &divide; &Sigma; &gamma;&#7523; &nbsp;·&nbsp; objectives met vs. expected</div>
+    </div>
+  </div>
+
+  <div class="thread">
+    <div class="thread-label">MT</div>
+    <div class="thread-line"></div>
+    <div class="thread-arrow">&#9654;</div>
+    <div class="thread-sub">Mission<br>Thread</div>
+  </div>
+
+  <!-- Functional -->
+  <div class="domain fn">
+    <div class="dom-hd">
+      <div class="dom-kicker">Functional Domain</div>
+      <div class="dom-name">Structure Tasks</div>
+      <div class="dom-vec">t = [t&#8321; … t&#8328;]&#7488;</div>
+    </div>
+    <div class="dom-body">
+      <div class="item"><span class="item-id">t&#8321;</span><span class="item-txt">Verify claim provenance and sourcing</span></div>
+      <div class="item"><span class="item-id">t&#8322;</span><span class="item-txt">Measure reliance against actual accuracy</span></div>
+      <div class="item"><span class="item-id">t&#8323;</span><span class="item-txt">Decompose and communicate uncertainty</span></div>
+      <div class="item"><span class="item-id">t&#8324;</span><span class="item-txt">Track source and model currency</span></div>
+      <div class="item"><span class="item-id">t&#8325;</span><span class="item-txt">Bound capability, fail closed at high stakes</span></div>
+      <div class="item"><span class="item-id">t&#8326;</span><span class="item-txt">Screen adversarial inputs at ingestion</span></div>
+      <div class="item"><span class="item-id">t&#8327;</span><span class="item-txt">Preserve the immutable provenance chain</span></div>
+      <div class="item"><span class="item-id">t&#8328;</span><span class="item-txt">Audit agentic reasoning for misalignment</span></div>
+    </div>
+    <div class="dom-measure">
+      <span class="measure-tag">MOE</span> Measure of Effectiveness
+      <div class="measure-desc">&Sigma; &gamma;&#7522; (CA&#7522; / CR&#7522;) &divide; &Sigma; &gamma;&#7522; &nbsp;·&nbsp; conditions achieved vs. required</div>
+    </div>
+  </div>
+
+  <div class="thread">
+    <div class="thread-label">MCT</div>
+    <div class="thread-line"></div>
+    <div class="thread-arrow">&#9654;</div>
+    <div class="thread-sub">Mission<br>Capability<br>Thread</div>
+  </div>
+
+  <!-- Capability -->
+  <div class="domain cap">
+    <div class="dom-hd">
+      <div class="dom-kicker">Capability Domain</div>
+      <div class="dom-name">Align Capabilities</div>
+      <div class="dom-vec">c = [c&#8321; … c&#8324;]&#7488;</div>
+    </div>
+    <div class="dom-body">
+      <div class="item"><span class="item-id">c&#8321;</span><span class="item-txt"><b>ORIGIN</b><br><span style="font-size:9.5px">Where did this claim come from, and is the record tamper-evident?</span></span></div>
+      <div class="item"><span class="item-id">c&#8322;</span><span class="item-txt"><b>CALIBRATION</b><br><span style="font-size:9.5px">Is reliance matched to accuracy?</span></span></div>
+      <div class="item"><span class="item-id">c&#8323;</span><span class="item-txt"><b>CURRENCY</b><br><span style="font-size:9.5px">Is this still valid?</span></span></div>
+      <div class="item"><span class="item-id">c&#8324;</span><span class="item-txt"><b>COMPETENCE</b><br><span style="font-size:9.5px">Can the AI perform reliably and safely, under attack and in its own agentic behavior?</span></span></div>
+    </div>
+    <div class="dom-measure">
+      <span class="measure-tag">MOC</span> Measure of Capability
+      <div class="measure-desc">&Sigma; &gamma;&#11388; (CS&#11388; / RCS&#11388;) &divide; &Sigma; &gamma;&#11388; &nbsp;·&nbsp; sufficiency vs. required</div>
+    </div>
+  </div>
+
+  <div class="thread">
+    <div class="thread-label">MET</div>
+    <div class="thread-line"></div>
+    <div class="thread-arrow">&#9654;</div>
+    <div class="thread-sub">Mission<br>Engineering<br>Thread</div>
+  </div>
+
+  <!-- Physical -->
+  <div class="domain sys">
+    <div class="dom-hd">
+      <div class="dom-kicker">Physical Domain</div>
+      <div class="dom-name">Implement Systems</div>
+      <div class="dom-vec">s = [s&#8321; … s&#8323;&#8328;]&#7488;</div>
+    </div>
+    <div class="dom-body">
+      <div class="item"><span class="item-id">s</span><span class="item-txt"><b>MOIRAI</b> provenance · <b>VERITAS</b> · <b>HERMES</b></span></div>
+      <div class="item"><span class="item-id">s</span><span class="item-txt"><b>Calibration Svc</b> · <b>TYCHE</b> · <b>Currency Svc</b></span></div>
+      <div class="item"><span class="item-id">s</span><span class="item-txt"><b>Adversarial Svc</b> · <b>APORIA</b> · <b>LETHE</b> · <b>JANUS</b></span></div>
+      <div class="item"><span class="item-id">s</span><span class="item-txt"><b>SENTINEL-CAP</b> · <b>LOGOS</b> · <b>LACUNA</b> · <b>SENTINEL</b></span></div>
+      <div class="item"><span class="item-id">s</span><span class="item-txt">Edge · gates · session · tool and credential planes</span></div>
+      <div class="item"><span class="item-id">s</span><span class="item-txt"><b>IRIS</b> presentation · enrichment · entity graph</span></div>
+      <div class="item"><span class="item-id">s</span><span class="item-txt" style="color:var(--sys)"><b>38 services · 11 namespaces</b> · full mapping below</span></div>
+    </div>
+    <div class="dom-measure">
+      <span class="measure-tag">MOP</span> Measure of Performance
+      <div class="measure-desc">&Sigma; &gamma;&#8342; (SP&#8342; / EP&#8342;) &divide; &Sigma; &gamma;&#8342; &nbsp;·&nbsp; performance vs. expected</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="rollup">
+  <div class="rollup-head">
+    <span class="rollup-icon">&#10192;</span>
+    <b>The traceability claim</b>
+    <span class="rollup-chain">MOP &rarr; MOC &rarr; MOE &rarr; MOS</span>
+  </div>
+  <div class="rollup-grid">
+    <div class="rj">
+      <div class="rj-tag rj-gov">Governance services</div>
+      <div class="rj-txt">Services that realize an axis are justified by <b>threshold rollup</b>: a service's MOP rolls up to a capability MOC, to a task MOE, to the mission MOS. Falsification test: name the axis whose sufficiency (MOC) falls below its required level (RCS) when the service is removed. For every primary-realizing service, that axis can be named.</div>
+    </div>
+    <div class="rj">
+      <div class="rj-tag rj-sub">Platform substrate</div>
+      <div class="rj-txt">Identity, gateway, gates, session, credential and tool planes are justified as <b>enabling preconditions</b> that every axis depends on, not as capability realizers. They sit beneath the measures hierarchy, not on it. Falsification test: name the axis that can be enforced at all without it.</div>
+    </div>
+    <div class="rj">
+      <div class="rj-tag rj-intel">Intelligence layer</div>
+      <div class="rj-txt">The 15 intelligence-layer services compound <b>analytical value</b> over time rather than enforcing an accountability axis. They are justified against a separate mission-value objective, traced on its own measure, not the four-axis MOS. Falsification test: name the analytical value that stops compounding without it.</div>
+    </div>
+  </div>
+  <div class="rollup-note">
+    The four axes measure <b>accountability</b>, not total mission value. "Too many services" stays falsifiable, but the test differs by service class: a capability measure that falls below threshold, a precondition that cannot be removed without disabling an axis, or analytical value that ceases to compound.
+  </div>
+</div>
+
+<!-- MCT MATRIX -->
+<div class="eyebrow">Mission Capability Thread</div>
+<div class="section-title">MCT: Tasks mapped to capabilities</div>
+<div class="section-sub">
+  t = <b>MCT</b><sub>(i,j)</sub> c. &nbsp; Each cell quantifies the adequacy of capability j in fulfilling task i. Provenance tasks resolve under Origin; adversarial screening and reasoning audit resolve under Competence. This surfaces capability gaps, overlaps, and the cross-functional dependencies a single task drives across more than one axis, before any commitment to a specific service.
+</div>
+<div class="matrix-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="rowhead" style="text-align:left">Functional task &darr; &nbsp; / &nbsp; Capability &rarr;</th>
+      <th class="col-cap cap-hd-op">c&#8321;<br>ORIGIN</th>
+      <th class="col-cap cap-hd-cal">c&#8322;<br>CALIBRATION</th>
+      <th class="col-cap cap-hd-cur">c&#8323;<br>CURRENCY</th>
+      <th class="col-cap cap-hd-com">c&#8324;<br>COMPETENCE</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="rowhead"><span class="rh-id fn">t&#8321;</span><span class="rh-txt">Verify claim <b>provenance</b></span></td>
+      <td class="cell lvl-p">0.9</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td>
+    </tr>
+    <tr>
+      <td class="rowhead"><span class="rh-id fn">t&#8322;</span><span class="rh-txt">Measure <b>reliance</b> vs. accuracy</span></td>
+      <td class="cell lvl-s">0.3</td><td class="cell lvl-p">0.95</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td>
+    </tr>
+    <tr>
+      <td class="rowhead"><span class="rh-id fn">t&#8323;</span><span class="rh-txt">Decompose <b>uncertainty</b></span></td>
+      <td class="cell lvl-s">0.3</td><td class="cell lvl-p">0.7</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.7</td>
+    </tr>
+    <tr>
+      <td class="rowhead"><span class="rh-id fn">t&#8324;</span><span class="rh-txt">Track source and model <b>currency</b></span></td>
+      <td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.95</td><td class="cell lvl-s">0.4</td>
+    </tr>
+    <tr>
+      <td class="rowhead"><span class="rh-id fn">t&#8325;</span><span class="rh-txt">Bound capability, <b>fail closed</b></span></td>
+      <td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.9</td>
+    </tr>
+    <tr>
+      <td class="rowhead"><span class="rh-id fn">t&#8326;</span><span class="rh-txt">Screen <b>adversarial</b> inputs</span></td>
+      <td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.95</td>
+    </tr>
+    <tr>
+      <td class="rowhead"><span class="rh-id fn">t&#8327;</span><span class="rh-txt">Preserve <b>provenance chain</b></span></td>
+      <td class="cell lvl-p">0.95</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td>
+    </tr>
+    <tr>
+      <td class="rowhead"><span class="rh-id fn">t&#8328;</span><span class="rh-txt">Audit <b>agentic reasoning</b></span></td>
+      <td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.9</td>
+    </tr>
+  </tbody>
+</table>
+<div class="legend">
+  <div class="lg"><span class="sw p"></span> Primary capability (&ge; 0.7)</div>
+  <div class="lg"><span class="sw s"></span> Supporting capability (0.3&ndash;0.6)</div>
+  <div class="lg"><span class="sw n"></span> No dependency</div>
+  <div class="lg" style="margin-left:auto">Adequacy bounded [0,1] · weighted per MOC</div>
+</div>
+</div>
+
+<!-- MET MATRIX -->
+<div class="eyebrow">Mission Engineering Thread</div>
+<div class="section-title">MET: Systems mapped to capabilities</div>
+<div class="section-sub">
+  c = <b>MET</b><sub>(j,k)</sub> s. &nbsp; All <b>38 services</b> run down the side, grouped by their canonical THEMIS namespace; the four axes run across the top. The final column marks <b>platform substrate</b>: cross-cutting infrastructure (gates, core, agent-native, interaction planes) that enables every axis rather than realizing one. Namespaces follow the THEMIS service registry: 23 platform services across 6 namespaces (themis-gates, -core, -quality, -intelligence, -agent, -interaction) and 15 intelligence-layer services across 5 namespaces (themis-knowledge, -research, -warning, -dissemination, -requirements), with the five-service Rumsfeld layer inside themis-warning.
+</div>
+<div class="matrix-wrap">
+<table class="met-flip">
+  <thead>
+    <tr>
+      <th class="rowhead" style="text-align:left">System &darr; &nbsp; / &nbsp; Capability &rarr;</th>
+      <th class="col-cap cap-hd-op">c&#8321;<br>ORIGIN</th>
+      <th class="col-cap cap-hd-cal">c&#8322;<br>CALIBRATION</th>
+      <th class="col-cap cap-hd-cur">c&#8323;<br>CURRENCY</th>
+      <th class="col-cap cap-hd-com">c&#8324;<br>COMPETENCE</th>
+      <th class="col-cap col-plat cap-hd-plat">PLATFORM<br>substrate</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="grp"><td colspan="6">themis-gates &middot; Safety Gates &nbsp;<span class="grp-count">3 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">Compartment &amp; Classification Enforcement</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Policy &amp; Guardrails</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Coalition Liaison</span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr class="grp"><td colspan="6">themis-core &middot; Core Infrastructure &nbsp;<span class="grp-count">4 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">AI Content Provenance Chain</span></td><td class="cell lvl-p">0.95</td><td class="cell lvl-s">0.3</td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Trust Calibration</span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-p">0.95</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Document Provenance</span></td><td class="cell lvl-p">0.9</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Outcome Feedback</span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-p">0.7</td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr class="grp"><td colspan="6">themis-quality &middot; Quality Layer &nbsp;<span class="grp-count">7 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">Feedback &amp; Ground Truth</span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-p">0.9</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Temporal Validity</span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.95</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Retrieval Quality</span></td><td class="cell lvl-p">0.9</td><td class="cell lvl-s">0.4</td><td class="cell lvl-s">0.4</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Source Corroboration</span></td><td class="cell lvl-p">0.9</td><td class="cell lvl-s">0.4</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Input Adversarial Screening</span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.9</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Media Authenticity</span></td><td class="cell lvl-s">0.4</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.7</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Uncertainty Characterization</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.7</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.7</td><td class="col-plat">&mdash;</td></tr>
+    <tr class="grp"><td colspan="6">themis-intelligence &middot; Knowledge Layer &nbsp;<span class="grp-count">3 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">Knowledge Currency</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.95</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Explainability &amp; Reasoning Audit</span></td><td class="cell lvl-s">0.4</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.7</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Model Drift</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="cell lvl-p">0.7</td><td class="cell lvl-s">0.4</td><td class="col-plat">&mdash;</td></tr>
+    <tr class="grp"><td colspan="6">themis-agent &middot; Agent-Native Infrastructure &nbsp;<span class="grp-count">3 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">Session Capability Bounding</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.9</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Credential Broker</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Reversibility &amp; State Snapshot</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr class="grp"><td colspan="6">themis-interaction &middot; Interaction Layer &nbsp;<span class="grp-count">3 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">Prompt Repository</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.3</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Skill Registry</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr><td class="svc"><span class="svc-code">MCP Gateway</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr class="grp"><td colspan="6">themis-knowledge &middot; Knowledge / Semantic &nbsp;<span class="grp-count">3 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">Semantic Ontology Foundation</span></td><td class="cell lvl-s">0.4</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Intelligence-Aware Document Diff</span></td><td class="cell lvl-s">0.4</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Institutional Knowledge Graph</span></td><td class="cell lvl-s">0.4</td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr class="grp"><td colspan="6">themis-research &middot; Research Orchestration &nbsp;<span class="grp-count">4 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">Research Orchestration</span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Predictive Intelligence from Outcomes</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Similar-Requirement Comparison</span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Anticipatory Research Surfacing</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat">&mdash;</td></tr>
+    <tr class="grp"><td colspan="6">themis-warning &middot; Warning (incl. Rumsfeld layer) &nbsp;<span class="grp-count">6 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">Temporal Reasoning &amp; Trajectory</span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-p">0.7</td><td class="cell lvl-s">0.4</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Anomaly Detection <span class="rms">Rumsfeld</span></span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.3</td><td class="cell lvl-p">0.7</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Collection Gap Mapping <span class="rms">Rumsfeld</span></span></td><td class="cell lvl-s">0.4</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="cell lvl-n">&mdash;</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Weak Signal Fusion <span class="rms">Rumsfeld</span></span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Cross-Requirement Correlation <span class="rms">Rumsfeld</span></span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="col-plat">&mdash;</td></tr>
+    <tr><td class="svc"><span class="svc-code">Strategic Warning <span class="rms">Rumsfeld</span></span></td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.4</td><td class="cell lvl-s">0.4</td><td class="col-plat">&mdash;</td></tr>
+    <tr class="grp"><td colspan="6">themis-dissemination &middot; Dissemination &nbsp;<span class="grp-count">1 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">Policymaker Communication</span></td><td class="cell lvl-s">0.4</td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-n">&mdash;</td><td class="col-plat plat-y">&#9679;</td></tr>
+    <tr class="grp"><td colspan="6">themis-requirements &middot; Requirements &nbsp;<span class="grp-count">1 services</span></td></tr>
+    <tr><td class="svc"><span class="svc-code">Tasking Integration</span></td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="cell lvl-s">0.3</td><td class="cell lvl-n">&mdash;</td><td class="col-plat plat-y">&#9679;</td></tr>
+  </tbody>
+</table>
+<div class="legend">
+  <div class="lg"><span class="sw p"></span> Primary realization (&ge; 0.7)</div>
+  <div class="lg"><span class="sw s"></span> Supporting realization (0.3&ndash;0.6)</div>
+  <div class="lg"><span class="sw n"></span> No contribution</div>
+  <div class="lg"><span class="sw" style="background:rgba(255,255,255,0.05)"></span> &#9679; Platform substrate</div>
+  <div class="lg" style="margin-left:auto">38 services &middot; 11 namespaces &middot; adequacy bounded [0,1]</div>
+</div>
+</div>
+
+<div class="foot">
+  <b>Reading the threads.</b> MT relates objectives to tasks · MCT relates tasks to the four accountability axes · MET relates capabilities to the consolidated service set. Provenance (MOIRAI) is realized under Origin; adversarial defense and alignment monitoring (Adversarial Service, JANUS) are realized under Competence, which here means reliable and safe performance including under attack and within the model's own agentic behavior. Adequacy scores are illustrative analytic scaffolds, bounded [0,1], not claims of linear mission relationships. The CALIBRATION measure inside c&#8322; is realized by a Bayesian posterior (TCS/MIMIR), not a linear ratio; the ME notation provides the traceability frame, not the internal computation.<br>
+  <b>Source frame.</b> Applied Mission Engineering process per Moreland, Ambler, LaMar, Nix &amp; Sawyer, <i>Systems Engineering</i> (2026). THEMIS · prepared for review.
+</div>
+
+</body>
+</html>
